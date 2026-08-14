@@ -247,9 +247,9 @@ Pencere açılmaz; çıktı `AttachConsole` ile çağıran terminale bağlanır 
 yutulur, çıkış kodu yine doğrudur).
 
 > **Not:** Uygulama `requireAdministrator` manifestiyle geldiği için bu mod **yükseltilmiş
-> bir terminalden elle** çalıştırılabilir; betik/otomasyon içinden `CreateProcess` ile
-> başlatılamaz. Otomasyon gerekiyorsa manifestteki `requestedExecutionLevel` değerini
-> `asInvoker` yapıp kendi derlemenizi alın.
+> bir terminalden elle** çalıştırılabilir; yükseltme isteyen bir exe başka bir süreçten
+> `CreateProcess` ile başlatılamadığı için betik/otomasyon içinden çağrılamaz. Yükseltme
+> istemeyen bir yapıya ihtiyacınız varsa iletişime geçin.
 
 ---
 
@@ -298,18 +298,6 @@ hata ağı, bir işleyiciden kaçan hatanın süreci öldürmesini engeller.
 
 ---
 
-## Derleme
-
-> ⚠️ **Bu depo tek başına derlenmez.** Proje, kardeş klasördeki `WimLibNet`
-> sarmalayıcısına proje referansıyla bağlıdır: `..\WimLibNet\WimLibNet.csproj`
-> (bu depoda yer almaz). Derlemeden önce onu WIMTOOLBOX klasörünün yanına yerleştirin.
-
-```
-D:\PROJELER\
-├── WIMTOOLBOX\      ← bu depo
-└── WimLibNet\       ← wimlib P/Invoke sarmalayıcısı (native x64 libwim.dll gömülü)
-```
-
 **Gereksinimler:** .NET 10 SDK · Visual Studio 2026 ya da `dotnet` CLI · x64
 
 ```powershell
@@ -317,20 +305,6 @@ dotnet build   "WIMTOOLBOX.vbproj" -c Release
 dotnet run     --project "WIMTOOLBOX.vbproj" -c Debug
 ```
 
-Derleme `Option Strict On` ile yapılır ve uyarısız geçmelidir.
-
-**Tek dosyalık dağıtım**
-
-```powershell
-dotnet publish "WIMTOOLBOX.vbproj" -p:PublishProfile=win-x64-singlefile
-```
-
-Çıktı: `publish\win-x64\WIMTOOLBOX.exe` — tek dosya, çerçeveye bağımlı (birkaç MB); hedef
-makinede **.NET 10 Desktop Runtime (win-x64)** kurulu olmalıdır. Kendi kendine yeten
-(self-contained) sürüm çalışma zamanını da gömdüğü için exe ~50 MB'tan başlıyordu; bilinçli
-olarak çerçeveye bağımlı tercih edildi.
-
----
 
 ## Dosya konumları
 
@@ -402,20 +376,39 @@ sıkıştırma belirgin şekilde yavaştır ve çok bellek ister.
 <details>
 <summary><b>Uygulama neden her açılışta UAC istiyor?</b></summary>
 
-Diske kurulum, VHD, BCD ve ACL'li apply işlemleri yükseltilmiş hak gerektirdiği için
-manifest `requireAdministrator` olarak ayarlıdır. Yalnızca inceleme/dönüştürme yapacaksanız
-manifestteki değeri `asInvoker` yapıp kendi derlemenizi alabilirsiniz.
+Diske kurulum, VHD, BCD ve ACL'leri koruyan apply işlemlerinin hepsi yükseltilmiş hak
+gerektirdiği için uygulama `requireAdministrator` manifestiyle gelir; bu yüzden yalnızca
+inceleme/dönüştürme yapacak olsanız da açılışta UAC sorulur. Karşılığında, bir işlemin
+ortasında "yönetici olarak yeniden başlatın" duvarına çarpmazsınız.
 </details>
 
 ---
 
 ## Lisans ve bileşenler
 
+**WIMTOOLBOX ücretsizdir, ancak açık kaynak değildir.** Telif hakkı © 2026 Mustafa
+Koçyiğit — tüm hakları saklıdır. Uygulamayı dilediğiniz kadar bilgisayarda, kişisel ya da
+ticari amaçla ücretsiz kullanabilir; değiştirmeden ve ücretsiz olarak paylaşabilirsiniz.
+Satmak, değiştirilmiş sürüm dağıtmak ya da koddan türev üretmek yazılı izne tabidir.
+
+Tam metin: [`LICENSE`](LICENSE)
+
+> ⚠️ Yazılım "olduğu gibi" sunulur, hiçbir garanti verilmez. Disk bölümleme,
+> biçimlendirme, imaj üzerine yazma ve BCD değişikliği **geri alınamaz** işlemlerdir;
+> yanlış hedef seçimi veri kaybına ya da sistemin açılmamasına yol açabilir. Yedek almak
+> kullanıcının sorumluluğundadır.
+
+Uygulamayla birlikte gelen üçüncü parti bileşenler **kendi lisansları** altındadır ve
+yukarıdaki koşullar onların verdiği hakları kısıtlamaz:
+
 | Bileşen | Rol | Lisans |
 |---|---|---|
-| [wimlib](https://wimlib.net/) | WIM/ESD motoru (`WimLibNet` üzerinden) | LGPL-3.0-or-later |
+| [wimlib](https://wimlib.net/) | WIM/ESD motoru (`WimLibNet` üzerinden dinamik yüklenir) | LGPL-3.0-or-later |
 | [DiscUtils](https://github.com/DiscUtils/DiscUtils) `Iso9660`, `Udf` | ISO/UDF okuma | MIT |
-| Windows ADK `oscdimg.exe` | ISO paketleme (isteğe bağlı, dışarıdan çağrılır) | Microsoft ADK koşulları |
+| `System.Management` | Storage WMI sağlayıcısına erişim | MIT |
+| Windows ADK `oscdimg.exe` | ISO paketleme (isteğe bağlı; dağıtılmaz, kuruluysa çağrılır) | Microsoft ADK koşulları |
+
+Ayrıntılar ve dağıtım yükümlülükleri: [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md)
 
 REGF (kayıt defteri), BCD, El Torito, MS-SHLLINK ve FAT32 biçimleri üçüncü parti kütüphane
 kullanılmadan, biçim belgelerine göre bu projede uygulanmıştır.
@@ -444,7 +437,12 @@ images and ISOs, powered by [wimlib](https://wimlib.net/).
   file preview, batch queue, backups, CLI mode.
 - Fully bilingual UI (Turkish / English), switchable at runtime.
 
-**Build note:** this repository does not build on its own — it project-references
-`..\WimLibNet\WimLibNet.csproj` (a plain P/Invoke wrapper embedding an x64 `libwim.dll`),
-which must sit next to this folder. Requires the .NET 10 Desktop Runtime (x64); the app
-requests administrator rights at startup.
+**Requirements:** Windows 10 (1607+) / 11 **x64** and the .NET 10 Desktop Runtime (x64).
+The app requests administrator rights at startup.
+
+**License:** WIMTOOLBOX is **free of charge but not open source** — © 2026 Mustafa Koçyiğit,
+all rights reserved. You may use it on any number of machines and share it unmodified and
+free of charge; selling, modifying or creating derivative works requires written
+permission. See [`LICENSE`](LICENSE). Third-party components keep their own licenses —
+notably wimlib (LGPL-3.0-or-later); see
+[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
