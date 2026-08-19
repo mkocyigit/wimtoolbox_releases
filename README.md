@@ -12,7 +12,7 @@ USB'ye yaz — hepsi aynı programda, DISM/`imagex`/`oscdimg` komut satırına d
   <img alt="Dil" src="https://img.shields.io/badge/dil-VB.NET-004880">
   <img alt="Motor" src="https://img.shields.io/badge/motor-wimlib-success">
   <img alt="Arayüz" src="https://img.shields.io/badge/arayüz-Türkçe%20%2F%20English-informational">
-  <img alt="Sürüm" src="https://img.shields.io/badge/sürüm-1.0.0-blue">
+  <img alt="Sürüm" src="https://img.shields.io/badge/sürüm-1.1.0-blue">
 </p>
 
 > TNCTR üyeleri için Claude AI yardımıyla geliştirilmiştir.
